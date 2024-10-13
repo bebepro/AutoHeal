@@ -1,0 +1,88 @@
+-- Constants
+local PERCENT_TO_BUY_TACO = 50       -- Percent of health when you want to buy a taco
+local TacoCost = 4  -- Cost of the taco
+
+-- Local variables
+local Player = game.Players.LocalPlayer
+local TacoBought = false -- Track if taco has been bought already
+local buyingActive = false -- Toggle for buying mode
+
+function announce(title, text, time)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = time,
+    })
+end
+
+-- Function to buy taco
+function AutoTaco()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+
+    local Health = Player.Character:FindFirstChild("Humanoid")
+    local TacoShop = game:GetService("Workspace").Ignored.Shop["[Taco] - $4"]
+
+    -- Check if health is below the specified percentage, taco wasn't bought, and player has enough money
+    if Health and Health.Health <= (Health.MaxHealth * PERCENT_TO_BUY_TACO / 100) and not TacoBought and Player.DataFolder.Currency.Value >= TacoCost and buyingActive then
+        local Origin = Player.Character.HumanoidRootPart.CFrame -- Store the original position before teleporting
+
+        -- Teleport to the taco shop
+        Player.Character.HumanoidRootPart.CFrame = TacoShop.Head.CFrame
+
+        -- Fast click on the taco purchase
+        local clickDetector = TacoShop:FindFirstChild("ClickDetector")
+        if clickDetector then
+            for i = 1, 10 do  -- Simulate multiple clicks to ensure purchase
+                fireclickdetector(clickDetector) -- Simulate clicking the detector
+                wait(0.2) -- Increased wait time between clicks to ensure proper registration
+            end
+        else
+            warn("ClickDetector not found in the taco shop.")
+            return
+        end
+
+        -- Set TacoBought to true after purchasing
+        TacoBought = true
+
+        -- Add a longer delay before teleporting back to ensure the taco purchase is processed
+        wait(2)  -- Longer wait time to ensure the game registers the purchase
+
+        -- Teleport back to original position
+        Player.Character.HumanoidRootPart.CFrame = Origin
+    end
+    
+    -- Reset TacoBought flag if conditions allow buying again
+    if Health and (Health.Health >= Health.MaxHealth or Player.DataFolder.Currency.Value < TacoCost) then
+        TacoBought = false -- Allow purchasing again when health is full or funds are low
+    end
+end
+
+-- Main loop to constantly check and buy taco if conditions are met
+function Main()
+    while wait(0.5) do  -- Reduced wait time to make health checks more frequent
+        if buyingActive then  -- Only run if buyingActive is true
+            local success, err = pcall(AutoTaco)
+            if not success then
+                warn("Error in AutoTaco: ", err)
+            end
+        end
+    end
+end
+
+-- Toggle function to start/stop buying on keypress (H)
+local UIS = game:GetService("UserInputService")
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.J then
+        buyingActive = not buyingActive -- Toggle the state
+        if buyingActive then
+            announce("Auto-buy activated", "Taco will be auto-purchased", 5)
+        else
+            announce("Auto-buy deactivated", "Taco auto-purchase stopped", 5)
+        end
+    end
+end)
+
+-- Start the main function in a coroutine
+coroutine.resume(coroutine.create(Main))
