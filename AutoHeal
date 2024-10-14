@@ -4,7 +4,6 @@ local TacoCost = 4  -- Cost of the taco
 
 -- Local variables
 local Player = game.Players.LocalPlayer
-local TacoBought = false -- Track if taco has been bought already
 local buyingActive = false -- Toggle for buying mode
 local Character = Player.Character or Player.CharacterAdded:Wait() -- Get the character or wait for it to load
 
@@ -52,8 +51,8 @@ function AutoTaco()
     local Health = Character:FindFirstChild("Humanoid")
     local TacoShop = game:GetService("Workspace").Ignored.Shop["[Taco] - $4"]
 
-    -- Check if health is below the specified percentage, taco wasn't bought, and player has enough money
-    if Health and Health.Health <= (Health.MaxHealth * PERCENT_TO_BUY_TACO / 100) and not TacoBought and Player.DataFolder.Currency.Value >= TacoCost and buyingActive then
+    -- Check if health is below the specified percentage and player has enough money
+    if Health and Health.Health <= (Health.MaxHealth * PERCENT_TO_BUY_TACO / 100) and Player.DataFolder.Currency.Value >= TacoCost and buyingActive then
         local Origin = Character.HumanoidRootPart.CFrame -- Store the original position before teleporting
 
         -- Teleport to the taco shop
@@ -71,20 +70,12 @@ function AutoTaco()
             return
         end
 
-        -- Set TacoBought to true after purchasing
-        TacoBought = true
-
         -- Equip and eat the taco right after purchase
         EquipAndEatTaco()
 
         -- Teleport back to original position with a short delay
         wait(0.5) -- Short delay before teleporting back
         Character.HumanoidRootPart.CFrame = Origin
-    end
-    
-    -- Reset TacoBought flag if conditions allow buying again
-    if Health and (Health.Health >= Health.MaxHealth or Player.DataFolder.Currency.Value < TacoCost) then
-        TacoBought = false -- Allow purchasing again when health is full or funds are low
     end
 end
 
@@ -116,8 +107,7 @@ end)
 
 -- Handle the player's character respawning
 Player.CharacterAdded:Connect(function(char)
-    Character = char  -- Update the character reference
-    TacoBought = false -- Reset the taco bought flag after respawn
+    Character = char  -- Update the character reference after respawn
 end)
 
 -- Start the main function in a coroutine to run continuously
