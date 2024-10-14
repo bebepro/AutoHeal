@@ -6,6 +6,7 @@ local TacoCost = 4  -- Cost of the taco
 local Player = game.Players.LocalPlayer
 local TacoBought = false -- Track if taco has been bought already
 local buyingActive = false -- Toggle for buying mode
+local Character = Player.Character or Player.CharacterAdded:Wait() -- Get the character or wait for it to load
 
 function announce(title, text, time)
     game.StarterGui:SetCore("SendNotification", {
@@ -30,12 +31,12 @@ function EquipAndEatTaco()
 
     if Taco then
         -- Equip the taco
-        Player.Character.Humanoid:EquipTool(Taco)
+        Character.Humanoid:EquipTool(Taco)
         announce("Taco equipped", "You have successfully equipped the taco", 3)
 
         -- Simulate the taco being eaten immediately after equipping
         wait(0.5) -- Short delay before simulating use of taco
-        Player.Character.Humanoid:UnequipTools() -- Simulate using the taco
+        Character.Humanoid:UnequipTools() -- Simulate using the taco
         announce("Taco eaten", "Taco has been consumed", 3)
     else
         warn("Taco not found in backpack after purchase.")
@@ -44,19 +45,19 @@ end
 
 -- Function to buy taco
 function AutoTaco()
-    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+    if not Character or not Character:FindFirstChild("HumanoidRootPart") then
         return
     end
 
-    local Health = Player.Character:FindFirstChild("Humanoid")
+    local Health = Character:FindFirstChild("Humanoid")
     local TacoShop = game:GetService("Workspace").Ignored.Shop["[Taco] - $4"]
 
     -- Check if health is below the specified percentage, taco wasn't bought, and player has enough money
     if Health and Health.Health <= (Health.MaxHealth * PERCENT_TO_BUY_TACO / 100) and not TacoBought and Player.DataFolder.Currency.Value >= TacoCost and buyingActive then
-        local Origin = Player.Character.HumanoidRootPart.CFrame -- Store the original position before teleporting
+        local Origin = Character.HumanoidRootPart.CFrame -- Store the original position before teleporting
 
         -- Teleport to the taco shop
-        Player.Character.HumanoidRootPart.CFrame = TacoShop.Head.CFrame
+        Character.HumanoidRootPart.CFrame = TacoShop.Head.CFrame
 
         -- Fast click on the taco purchase
         local clickDetector = TacoShop:FindFirstChild("ClickDetector")
@@ -78,7 +79,7 @@ function AutoTaco()
 
         -- Teleport back to original position with a short delay
         wait(0.5) -- Short delay before teleporting back
-        Player.Character.HumanoidRootPart.CFrame = Origin
+        Character.HumanoidRootPart.CFrame = Origin
     end
     
     -- Reset TacoBought flag if conditions allow buying again
@@ -111,6 +112,12 @@ UIS.InputBegan:Connect(function(input)
             announce("Auto-buy deactivated", "Taco auto-purchase stopped", 5)
         end
     end
+end)
+
+-- Handle the player's character respawning
+Player.CharacterAdded:Connect(function(char)
+    Character = char  -- Update the character reference
+    TacoBought = false -- Reset the taco bought flag after respawn
 end)
 
 -- Start the main function in a coroutine to run continuously
