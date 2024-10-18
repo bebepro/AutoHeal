@@ -92,16 +92,17 @@ function Main()
     end
 end
 
--- Toggle function to start/stop buying on keypress (J)
-local UIS = game:GetService("UserInputService")
-UIS.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.J then
-        buyingActive = not buyingActive -- Toggle the state
-        if buyingActive then
-            announce("Auto-buy activated", "Taco will be auto-purchased", 5)
-        else
-            announce("Auto-buy deactivated", "Taco auto-purchase stopped", 5)
-        end
+-- Toggle function to start/stop buying on button click
+local button = script.Parent -- Reference to the UI button (TextButton)
+
+button.MouseButton1Click:Connect(function()
+    buyingActive = not buyingActive -- Toggle the state
+    if buyingActive then
+        button.BackgroundColor3 = Color3.new(0.905882, 0.196078, 0.0196078) -- Color when activated (orange)
+        announce("Auto-buy activated", "Taco will be auto-purchased", 5)
+    else
+        button.BackgroundColor3 = Color3.new(0.0117647, 0.0117647, 0.0117647) -- Color when deactivated (black)
+        announce("Auto-buy deactivated", "Taco auto-purchase stopped", 5)
     end
 end)
 
