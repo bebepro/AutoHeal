@@ -8,107 +8,107 @@ local buyingActive = false -- Toggle for buying mode
 local Character = Player.Character or Player.CharacterAdded:Wait() -- Get the character or wait for it to load
 
 function announce(title, text, time)
-    game.StarterGui:SetCore("SendNotification", {
-        Title = title,
-        Text = text,
-        Duration = time,
-    })
+	game.StarterGui:SetCore("SendNotification", {
+		Title = title,
+		Text = text,
+		Duration = time,
+	})
 end
 
 -- Function to equip and eat the taco after purchase
 function EquipAndEatTaco()
-    local Backpack = Player.Backpack
-    local Taco = Backpack:FindFirstChild("[Taco]") -- Check Backpack for the taco
+	local Backpack = Player.Backpack
+	local Taco = Backpack:FindFirstChild("[Taco]") -- Check Backpack for the taco
 
-    -- Wait until the taco appears in the backpack (give it up to 2 seconds)
-    local timeWaited = 0
-    while not Taco and timeWaited < 2 do
-        wait(0.1)
-        timeWaited = timeWaited + 0.1
-        Taco = Backpack:FindFirstChild("[Taco]") -- Try to find the taco again
-    end
+	-- Wait until the taco appears in the backpack (give it up to 2 seconds)
+	local timeWaited = 0
+	while not Taco and timeWaited < 2 do
+		wait(0.1)
+		timeWaited = timeWaited + 0.1
+		Taco = Backpack:FindFirstChild("[Taco]") -- Try to find the taco again
+	end
 
-    if Taco then
-        -- Equip the taco
-        Character.Humanoid:EquipTool(Taco)
-        announce("Taco equipped", "You have successfully equipped the taco", 3)
+	if Taco then
+		-- Equip the taco
+		Character.Humanoid:EquipTool(Taco)
+		announce("Taco equipped", "You have successfully equipped the taco", 3)
 
-        -- Simulate the taco being eaten immediately after equipping
-        wait(0.5) -- Short delay before simulating use of taco
-        Character.Humanoid:UnequipTools() -- Simulate using the taco
-        announce("Taco eaten", "Taco has been consumed", 3)
-    else
-        warn("Taco not found in backpack after purchase.")
-    end
+		-- Simulate the taco being eaten immediately after equipping
+		wait(0.5) -- Short delay before simulating use of taco
+		Character.Humanoid:UnequipTools() -- Simulate using the taco
+		announce("Taco eaten", "Taco has been consumed", 3)
+	else
+		warn("Taco not found in backpack after purchase.")
+	end
 end
 
 -- Function to buy taco
 function AutoTaco()
-    if not Character or not Character:FindFirstChild("HumanoidRootPart") then
-        return
-    end
+	if not Character or not Character:FindFirstChild("HumanoidRootPart") then
+		return
+	end
 
-    local Health = Character:FindFirstChild("Humanoid")
-    local TacoShop = game:GetService("Workspace").Ignored.Shop["[Taco] - $4"]
+	local Health = Character:FindFirstChild("Humanoid")
+	local TacoShop = game:GetService("Workspace").Ignored.Shop["[Taco] - $4"]
 
-    -- Check if health is below the specified percentage and player has enough money
-    if Health and Health.Health <= (Health.MaxHealth * PERCENT_TO_BUY_TACO / 100) and Player.DataFolder.Currency.Value >= TacoCost and buyingActive then
-        local Origin = Character.HumanoidRootPart.CFrame -- Store the original position before teleporting
+	-- Check if health is below the specified percentage and player has enough money
+	if Health and Health.Health <= (Health.MaxHealth * PERCENT_TO_BUY_TACO / 100) and Player.DataFolder.Currency.Value >= TacoCost and buyingActive then
+		local Origin = Character.HumanoidRootPart.CFrame -- Store the original position before teleporting
 
-        -- Teleport to the taco shop
-        Character.HumanoidRootPart.CFrame = TacoShop.Head.CFrame
+		-- Teleport to the taco shop
+		Character.HumanoidRootPart.CFrame = TacoShop.Head.CFrame
 
-        -- Fast click on the taco purchase
-        local clickDetector = TacoShop:FindFirstChild("ClickDetector")
-        if clickDetector then
-            for i = 1, 5 do  -- Reduced number of clicks to speed up purchase
-                fireclickdetector(clickDetector) -- Simulate clicking the detector
-                wait(0.1) -- Reduced wait time between clicks to ensure faster purchase
-            end
-        else
-            warn("ClickDetector not found in the taco shop.")
-            return
-        end
+		-- Fast click on the taco purchase
+		local clickDetector = TacoShop:FindFirstChild("ClickDetector")
+		if clickDetector then
+			for i = 1, 5 do  -- Reduced number of clicks to speed up purchase
+				fireclickdetector(clickDetector) -- Simulate clicking the detector
+				wait(0.1) -- Reduced wait time between clicks to ensure faster purchase
+			end
+		else
+			warn("ClickDetector not found in the taco shop.")
+			return
+		end
 
-        -- Equip and eat the taco right after purchase
-        EquipAndEatTaco()
+		-- Equip and eat the taco right after purchase
+		EquipAndEatTaco()
 
-        -- Teleport back to original position with a short delay
-        wait(0.5) -- Short delay before teleporting back
-        Character.HumanoidRootPart.CFrame = Origin
-    end
+		-- Teleport back to original position with a short delay
+		wait(0.5) -- Short delay before teleporting back
+		Character.HumanoidRootPart.CFrame = Origin
+	end
 end
 
 -- Main loop to constantly check and buy taco if conditions are met
 function Main()
-    while true do  -- Continuously check health and automatically buy/equip/eat taco when toggle is active
-        if buyingActive then  -- Only run if buyingActive is true
-            local success, err = pcall(AutoTaco)
-            if not success then
-                warn("Error in AutoTaco: ", err)
-            end
-        end
-        wait(0.5)  -- Check every 0.5 seconds for health status
-    end
+	while true do  -- Continuously check health and automatically buy/equip/eat taco when toggle is active
+		if buyingActive then  -- Only run if buyingActive is true
+			local success, err = pcall(AutoTaco)
+			if not success then
+				warn("Error in AutoTaco: ", err)
+			end
+		end
+		wait(0.5)  -- Check every 0.5 seconds for health status
+	end
 end
 
 -- Toggle function to start/stop buying on button click
 local button = script.Parent -- Reference to the UI button (TextButton)
 
 button.MouseButton1Click:Connect(function()
-    buyingActive = not buyingActive -- Toggle the state
-    if buyingActive then
-        button.BackgroundColor3 = Color3.new(0.905882, 0.196078, 0.0196078) -- Color when activated (orange)
-        announce("Auto-buy activated", "Taco will be auto-purchased", 5)
-    else
-        button.BackgroundColor3 = Color3.new(0.0117647, 0.0117647, 0.0117647) -- Color when deactivated (black)
-        announce("Auto-buy deactivated", "Taco auto-purchase stopped", 5)
-    end
+	buyingActive = not buyingActive -- Toggle the state
+	if buyingActive then
+		button.BackgroundColor3 = Color3.new(0.905882, 0.196078, 0.0196078) -- Color when activated (orange)
+		announce("Auto-buy activated", "Taco will be auto-purchased", 5)
+	else
+		button.BackgroundColor3 = Color3.new(0.0117647, 0.0117647, 0.0117647) -- Color when deactivated (black)
+		announce("Auto-buy deactivated", "Taco auto-purchase stopped", 5)
+	end
 end)
 
 -- Handle the player's character respawning
 Player.CharacterAdded:Connect(function(char)
-    Character = char  -- Update the character reference after respawn
+	Character = char  -- Update the character reference after respawn
 end)
 
 -- Start the main function in a coroutine to run continuously
